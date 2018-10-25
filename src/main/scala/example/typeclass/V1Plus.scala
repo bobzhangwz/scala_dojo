@@ -15,6 +15,7 @@ object V1Plus {
   }
   // 子类型多态
   def plus[A <: CanPlus[A]](a1: A, a2: A): A = a1.plus(a2)
+  // def plus(a1: CanPlus, a2: CanPlus): CanPlus = a1.plus(a2)
 
 }
 
@@ -82,7 +83,6 @@ object V4Plus {
 //  import cats.Eq
 //  import cats.Monoid
 
-
 //  import cats.Functor
 //  import cats.Applicative
 //  import cats.Monad
@@ -101,5 +101,6 @@ object V5Plus {
     // def map3 map4 map5
   }
 
+  // A monad is a mechanism for sequencing computations.
 }
 
