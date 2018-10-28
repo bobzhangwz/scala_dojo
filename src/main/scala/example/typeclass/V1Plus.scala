@@ -71,11 +71,21 @@ object V4Plus {
     }
   }
 
+  implicit def optionMonoid[A : Monoid]= new Monoid[Option[A]] {
+    override def combine(a: Option[A], a1: Option[A]): Option[A] = (a, a1) match {
+      case (_, None) => None
+      case (None, _) => None
+      case (Some(a), Some(a1)) => Some(implicitly[Monoid[A]].combine(a, a1))
+    }
+
+    override def empty: Option[A] = Some(implicitly[Monoid[A]].empty)
+  }
+
   def sum[A](xs: List[A])(implicit m: Monoid[A]): A = xs.foldLeft(m.empty)(m.combine)
 
 //  import cats.instances.all._
 //  import cats.syntax.all._
-//
+
 //  import cats.instances.option._
 //  import cats.syntax.option._
 
@@ -86,12 +96,13 @@ object V4Plus {
 //  import cats.Functor
 //  import cats.Applicative
 //  import cats.Monad
+
 //  import cats.Foldable
 }
 
 object V5Plus {
   trait Functor[M[_]] {
-    def map[A, B](a: M[A]): M[B]
+    def map[A, B](a: M[A], func: A => B): M[B]
   }
 
   trait Applicative[M[_]] {
@@ -102,5 +113,57 @@ object V5Plus {
   }
 
   // A monad is a mechanism for sequencing computations.
+  trait Monad[M[_]] {
+    def flatMap[A, B](a: M[A], func: A => M[B]): M[B]
+  }
+
 }
 
+object V6Plus {
+  import cats.Monad
+  import scala.annotation.tailrec
+
+
+  val optionMonad = new Monad[Option] {
+    def flatMap[A, B](opt: Option[A])(fn: A => Option[B]): Option[B] = opt flatMap fn
+
+    def pure[A](opt: A): Option[A] = Some(opt)
+    //  The tailRecM method is an optimisaton used in Cats to limit the amount
+    //  of stack space consumed by nested calls to flatMap. The technique comes
+    //  from a 2015 paper by PureScript creator Phil Freeman. The method should
+    //  recursively call itself unl the result of fn returns a Right.
+    //    If we can make tailRecM tail-recursive, Cats is able to guarantee stack safety
+    //  in recursive situations such as folding over large lists. If we
+    //    can’t make tailRecM tail-recursive, Cats cannot make these guarantees and
+    //    extreme use cases may result in StackOverflowErrors.
+    @tailrec
+    def tailRecM[A, B](a: A)
+      (fn: A => Option[Either[A, B]]): Option[B] =
+      fn(a) match {
+        case None => None
+        case Some(Left(a1)) => tailRecM(a1)(fn)
+        case Some(Right(b)) => Some(b)
+      }
+  }
+}
+
+object V7Plus {
+  sealed trait NewOption[+T]
+  case class NewSome[+T](value: T) extends NewOption[T]
+  case object NewNone extends NewOption[Nothing]
+
+  import cats.Monad
+//  import cats.instances.option._
+
+  def transform[A](newOpt: NewOption[A]): Option[A]  = newOpt match {
+    case NewSome(value) => Some(value)
+    case NewNone => None
+  }
+
+  val newOptionMonad = new Monad[NewOption] {
+    override def flatMap[A, B](fa: NewOption[A])(f: A => NewOption[B]): NewOption[B] = ???
+    override def pure[A](x: A): NewOption[A] = ???
+    override def tailRecM[A, B](a: A)(f: A => NewOption[Either[A, B]]): NewOption[B] = ???
+  }
+
+}
