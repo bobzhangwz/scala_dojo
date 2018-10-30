@@ -106,8 +106,8 @@ object V5Plus {
   }
 
   trait Applicative[M[_]] {
-//    def ap[A, B](ff: M[A => B])(fa: M[A]): M[B]
-//    def pure[A](a: => A): M[A]  // lift
+// def ap[A, B](ff: M[A => B])(fa: M[A]): M[B]
+// def pure[A](a: => A): M[A]  // lift
     def map2[A, B, C](fa: M[A], fb: M[B])(f: (A, B) => C): M[C] // Some((Int, Int)=> Int)
     // def map3 map4 map5
   }
@@ -123,7 +123,6 @@ object V6Plus {
   import cats.Monad
   import scala.annotation.tailrec
 
-
   val optionMonad = new Monad[Option] {
     def flatMap[A, B](opt: Option[A])(fn: A => Option[B]): Option[B] = opt flatMap fn
 
@@ -137,8 +136,7 @@ object V6Plus {
     //    can’t make tailRecM tail-recursive, Cats cannot make these guarantees and
     //    extreme use cases may result in StackOverflowErrors.
     @tailrec
-    def tailRecM[A, B](a: A)
-      (fn: A => Option[Either[A, B]]): Option[B] =
+    def tailRecM[A, B](a: A)(fn: A => Option[Either[A, B]]): Option[B] =
       fn(a) match {
         case None => None
         case Some(Left(a1)) => tailRecM(a1)(fn)
@@ -165,5 +163,5 @@ object V7Plus {
     override def pure[A](x: A): NewOption[A] = ???
     override def tailRecM[A, B](a: A)(f: A => NewOption[Either[A, B]]): NewOption[B] = ???
   }
-
+  // https://typelevel.org/cats/datatypes/freemonad.html
 }
