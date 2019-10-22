@@ -41,8 +41,6 @@ resolvers ++= Seq(
 
 lazy val projectDependencies = Seq(
   "org.typelevel"             %% "cats-core"                          % CatsVersion,
-  "org.atnos"                 %% "eff"                                % EffVersion,
-  "org.atnos"                 %% "eff-cats-effect"                    % EffVersion,
   "org.scalatest"             %% "scalatest"                          % ScalaTestVersion % "test"
 )
 
